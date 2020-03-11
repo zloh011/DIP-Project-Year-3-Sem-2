@@ -28,7 +28,10 @@ dependencies:
   flutter_downloader: ^1.4.1
   dio: ^3.0.9
   path_provider: ^1.6.4
-
+  pdf_render: ^0.57.2
+  json_serializable: ^3.2.5
+  date_utils: ^0.1.0+3
+  swipedetector: ^1.2.0
 dev_dependencies:
   flutter_test:
     sdk: flutter

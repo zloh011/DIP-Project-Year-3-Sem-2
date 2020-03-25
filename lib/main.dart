@@ -1,4 +1,4 @@
-import 'file:///C:/Users/LohZA/Desktop/NTU/Year_3_Sem_2/EE3080_DIP_E037_SMAPP-C/Project_Folder/dip_taskplanner/lib/Screen/LoadingScreen.dart';
+import 'package:dip_taskplanner/Screen/LoadingScreen.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MyApp());

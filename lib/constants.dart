@@ -1,3 +1,6 @@
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+
 enum dayOfWeek {
   Sun,
   Mon,
@@ -19,5 +22,25 @@ const Map<int,String> dayOfWk = {
 };
 const int rows = 6;
 const int daysPerWeek = DateTime.daysPerWeek;
+
+Map<DateTime,List<dynamic>> academicWeeks = {
+  DateTime.parse('2020-01-13 00:00:00'):["week1",Colors.yellow],
+  DateTime.parse('2020-01-20 00:00:00'):["week2",Colors.yellow],
+  DateTime.parse('2020-01-27 00:00:00'):["week3",Colors.yellow],
+  DateTime.parse('2020-02-03 00:00:00'):["week4",Colors.yellow],
+  DateTime.parse('2020-02-10 00:00:00'):["week5",Colors.yellow],
+  DateTime.parse('2020-02-17 00:00:00'):["week6",Colors.yellow],
+  DateTime.parse('2020-02-24 00:00:00'):["week7",Colors.yellow],
+  DateTime.parse('2020-03-02 00:00:00'):["recess",null],
+  DateTime.parse('2020-03-09 00:00:00'):["week8",Colors.yellow],
+  DateTime.parse('2020-03-16 00:00:00'):["week9",Colors.yellow],
+  DateTime.parse('2020-03-23 00:00:00'):["week10",Colors.yellow],
+  DateTime.parse('2020-03-30 00:00:00'):["week11",Colors.yellow],
+  DateTime.parse('2020-04-06 00:00:00'):["week12",Colors.yellow],
+  DateTime.parse('2020-04-13 00:00:00'):["week13",Colors.yellow],
+  DateTime.parse('2020-04-20 00:00:00'):["exam",Colors.orange],
+  DateTime.parse('2020-04-27 00:00:00'):["exam",Colors.orange],
+  DateTime.parse('2020-05-04 00:00:00'):["exam",Colors.orange],
+};
 // Color(0xFFFFFF); // fully transparent white (invisible)
 // Color(0xFFFFFFFF); // fully opaque white (visible)

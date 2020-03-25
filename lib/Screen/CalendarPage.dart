@@ -9,6 +9,7 @@ import 'package:pdf_render/pdf_render.dart';
 import 'package:date_utils/date_utils.dart';
 import 'package:swipedetector/swipedetector.dart';
 
+
 const activeCardColour = Color(0xFF1D1E33);
 
 class CalendarPage extends StatefulWidget {
@@ -35,6 +36,9 @@ class _CalendarPageState extends State<CalendarPage> {
             visible: true,
             location: [i, j],
             text: startDayIndex.day.toString(),
+            dateTime: startDayIndex,
+            boxShadowColor:
+              academicWeeks[startDayIndex.subtract(Duration(days: (startDayIndex.weekday-1),),)]==null?null: academicWeeks[startDayIndex.subtract(Duration(days: (startDayIndex.weekday-1),),)][1],
             function: () {
               print([i, j]);
             }, //TODO: if pressed, what will pop up. Need to return location btw
@@ -45,6 +49,8 @@ class _CalendarPageState extends State<CalendarPage> {
         }
       }
     }
+
+
   }
 
   @override
@@ -81,21 +87,21 @@ class _CalendarPageState extends State<CalendarPage> {
           onSwipeLeft: () {
             setState(
               () {
-                dateTime = dateTime.subtract(
-                    Duration(days: Utils.daysInMonth(dateTime).length));
-                print('$dateTime');
-                deleteFrom2DList(twoDList);
-                updateUI(dateTime);
+              dateTime = dateTime
+                  .add(Duration(days: Utils.daysInMonth(dateTime).length));
+              
+              deleteFrom2DList(twoDList);
+              updateUI(dateTime);
               },
             );
           },
           onSwipeRight: () {
             setState(() {
-              dateTime = dateTime
-                  .add(Duration(days: Utils.daysInMonth(dateTime).length));
-              print('$dateTime');
-              deleteFrom2DList(twoDList);
-              updateUI(dateTime);
+              dateTime = dateTime.subtract(
+                    Duration(days: Utils.daysInMonth(dateTime).length));
+                
+                deleteFrom2DList(twoDList);
+                updateUI(dateTime);
             });
           },
           child: Column(children: <Widget>[
@@ -115,7 +121,7 @@ class _CalendarPageState extends State<CalendarPage> {
               height: 150.0,
               child: Center(
                   child: Text(
-                '${DateFormat.MMMM().format(dateTime)}',
+                '${DateFormat.yMMMM().format(dateTime)}',
                 style: TextStyle(fontSize: 50.0),
               )),
             ),

@@ -1,13 +1,8 @@
+import 'package:dip_taskplanner/database/database_hepler.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:pdf_render/pdf_render.dart';
 import 'package:dip_taskplanner/Screen/CalendarPage.dart';
-import 'package:dio/dio.dart';
-import 'dart:io' as io;
-import 'package:path_provider/path_provider.dart';
-
-const String urlAcadCal =
-    'https://www.ntu.edu.sg/sasd/oas/AcademicCalendar/Documents/NTU';
+import 'package:dip_taskplanner/components/regExp.dart';
 
 class LoadingScreen extends StatefulWidget {
   @override
@@ -15,140 +10,125 @@ class LoadingScreen extends StatefulWidget {
 }
 
 class _LoadingScreenState extends State<LoadingScreen> {
-  bool downloading = false;
-  String progressString = 'No Data';
-
+  var datebasehelper = DatabaseHelper();
+  int state = 0;
+  bool exist = false;
+  final myTextController = TextEditingController();
   @override
   void initState() {
-    // TODO: POP UP A Translucent Screen of input text bar and button
     super.initState();
-    getPDF(
-        "$urlAcadCal%20Academic%20Calendar_AY${yearNow.toString()}-${(yearNow % 100 + 1).toString()}%20(Semester).pdf");
+    existence();
   }
-
-  int yearNow = DateTime.now().month < 6
-      ? (DateTime.now().year - 1)
-      : (DateTime.now().year);
-
-  Future<void> getPDF(String downloadLink) async {
-    Dio dio = Dio();
-    var dir = await getApplicationDocumentsDirectory();
-    String path = '${dir.path}/$yearNow-${(yearNow % 100 + 1).toString()}';
-    if (io.File(path).existsSync() != true) {
-      try {
-        print(
-            '${dir.path}/Assets/$yearNow-${(yearNow % 100 + 1).toString()}.pdf');
-        await dio.download(
-          downloadLink,
-          '${dir.path}/Assets/$yearNow-${(yearNow % 100 + 1).toString()}.pdf',
-          onReceiveProgress: (rec, total) {
-            print('Rec:$rec,Total: $total');
-            setState(() {
-              progressString = ((rec / total) * 100).toStringAsFixed(0) + '%';
-              downloading = true;
-            });
-          },
-        );
-      } catch (e) {
-        print(e);
-      }
-      setState(() {
-        downloading = false;
-        progressString = 'Completed';
-      });
-      PdfPageImage academicCalendar = await pdfRenderer(dir);
-
-      showDialog(
-          context: (context),
-          builder: (BuildContext context) => Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(5.0),
-                ),
-                elevation: 0.0,
-                child: Column(
-                  children: <Widget>[
-                    TextField(
-                      onChanged: (val) {
-                        setState(() {
-                          print(val);
-                        });
-                      },
-                      decoration: InputDecoration(
-                          hintText: 'Print/Check Courses Registered'),
-                    ),
-                    SizedBox(
-                      width: 10.0,
-                    ),
-                    FlatButton(
-                      onPressed: () {
-//                        buttonPressed = true;
-                        print('ButtonPressed');
-                        
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return CalendarPage(academicCalendar: academicCalendar);
-                            },
-                          ),
-                        );
-                            },
-                      child: Text('Submit'),
-                    ),
-                  ],
-                ),
-              )
-            );
-    }
+  Future<void> existence () async{
+    bool exist = await datebasehelper.coursesExist();
+    print(exist);
+    setState((){
+      if(exist) state = 1;
+      else state = 2;
+    });
   }
-
-  /*Codes inside Component Folder
-      downloadPDF is to download the specific file to the application document
-     */
-
-  Future<PdfPageImage> pdfRenderer(io.Directory dir) async {
-//    var dir = await getApplicationDocumentsDirectory();
-    PdfDocument doc = await PdfDocument.openFile(
-        '${dir.path}/Assets/$yearNow-${(yearNow % 100 + 1).toString()}.pdf');
-    PdfPage page = await doc.getPage(1);
-    PdfPageImage pageImage = await page.render();
-    doc.dispose();
-    return pageImage;
-  }
-
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: Center(
-          child: downloading
-              ? Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    CircularProgressIndicator(
-                      backgroundColor: Colors.white,
-                    ),
-                    SizedBox(
-                      height: 10.0,
-                    ),
-                    Text(
-                      'Downloading File: $progressString',
-                      style: TextStyle(color: Colors.white),
-                    ),
+    return getOption();
+  }
+  Widget getOption (){
+    switch (state) {
+      case 1: return CalendarPage();
+      case 2: return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(
+        resizeToAvoidBottomPadding: false,
+        body: SafeArea(
+          child: Center(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Image.asset('lib/Assets/Sample.jpeg'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical:0.0, horizontal: 20.0),
+                  child: TextField(controller: myTextController,decoration: InputDecoration(hintText: 'Paste here',labelText:'Print/Check Courses Registered' ) ,),
+                ),
+                Row(
+                  
+                  children: [
+                    Expanded(child: Padding(
+                      padding: const EdgeInsets.only(left:16.0),
+                      child: FlatButton(onPressed: (){
+                        final func = ListOfCourses();
+                        if(myTextController.text.isNotEmpty){
+                          bool check = func.addToDatabase(myTextController.text,context);
+                          if(check){ 
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return CalendarPage();
+                                },
+                              ),
+                            );
+                          }
+                          else{
+                              showDialog(
+                              context: context,
+                              builder: (context)=> AlertDialog(
+                                title: Text('Error'),
+                                content: Text('Please copy and paste your Courses Registered correctly.'),
+                                actions: [
+                                  FlatButton(onPressed: (){Navigator.of(context).pop();}, child: Text('Okay'))
+                                ],
+                              ),
+                              barrierDismissible: false
+                            );
+                          }
+
+                        }
+                        else{
+                          showDialog(
+                            context: context,
+                            builder: (_)=>
+                              AlertDialog(
+                                title: Text('Error'),
+                                content: Text('Please do not leave it empty and \ncopy-paste your Courses Registered.'),
+                                actions: [
+                                  FlatButton(onPressed: (){Navigator.of(context).pop();}, child: Text('Okay'))
+                                ],
+                              ),
+                              barrierDismissible: false
+                            );
+                        }
+                      }, 
+                      child: Text('Submit'),),
+                    ),flex:1),
+                    Expanded(child: Padding(
+                      padding: const EdgeInsets.only(right:24.0),
+                      child: FlatButton(onPressed: (){myTextController.clear();}, child: Text('Clear'),),
+                    ),flex:1),
                   ],
-                )
-              : Text('$progressString'),
+                ),
+
+              ],
+            )
+            
+          
+            
+          ),
         ),
-      ),
-    );
+    ),
+      );
+        break;
+      default: return WillPopScope(
+        onWillPop: () async => false,
+        child: Scaffold(body: Center(child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            Text(state.toString())
+          ],
+        ))),
+      );break;
+    }
   }
 }
 
-//https://www.ntu.edu.sg/sasd/oas/AcademicCalendar/Documents/NTU%20Academic%20Calendar_AY2019-20%20(Semester).pdf
-
-//DecoratedBox(
-//    decoration: BoxDecoration(
-//      image: DecorationImage(image: AssetImage("your_asset"), fit: BoxFit.cover),
-//    ),
-//    child: Center(child: FlutterLogo(size: 300)),
-//  );

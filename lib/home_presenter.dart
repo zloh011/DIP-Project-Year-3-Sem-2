@@ -3,6 +3,8 @@ import 'package:dip_taskplanner/database/model/user.dart';
 
 import 'dart:async';
 
+import 'package:flutter/material.dart';
+
 
 abstract class HomeContract {
   void screenUpdate();
@@ -27,10 +29,13 @@ class HomePresenter {
     return db.getUser(dateTime);
   }
 
-  updateScreen() {
-    _view.screenUpdate();
-
+  Future<List<String>> getcourseid() async {
+    var db = DatabaseHelper();
+    return await db.getCourseid();
   }
 
+  updateScreen() {
+    _view.screenUpdate();
+  }
 
 }

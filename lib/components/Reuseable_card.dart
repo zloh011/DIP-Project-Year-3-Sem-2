@@ -19,12 +19,12 @@ class CircularButton extends StatelessWidget {
           onTap: () {
             function();
             print(dateTime.toString());
-            Navigator.push(context,MaterialPageRoute(builder: (context){return MyHomePage(title:"Hi",dateTime: DateFormat.yMd().format(dateTime),);}));
+            Navigator.push(context,MaterialPageRoute(builder: (context){return MyHomePage(title:"Hi",dateTime: DateFormat('yyyy-MM-dd').format(dateTime),);}));
           },
           child: Container(
             margin: EdgeInsets.all(8.0),
-            height: 35.0,
-            width: 35.0,
+            height: 40.0,
+            width: 40.0,
             alignment: Alignment.center,
             decoration: BoxDecoration(
               shape: BoxShape.circle,

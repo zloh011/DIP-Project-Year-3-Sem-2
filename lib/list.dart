@@ -84,12 +84,23 @@ class UserList extends StatelessWidget {
 
   displayRecord() {
     homePresenter.updateScreen();
+
   }
+  
   edit(User user, BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) =>
-          new AddUserDialog().buildAboutDialog(context, this, true, user,dateTime),
+        FutureBuilder(
+            future:homePresenter.getcourseid(), 
+            builder: (context,snapshot){
+              if(snapshot.hasError)print(snapshot.data);
+              var data = snapshot.data;
+              return snapshot.hasData
+                ?AddUserDialog(context:context, myHomePageState: this, isEdit:true, user:user,dateTime:dateTime,courseid:data)
+                : Center(child: CircularProgressIndicator());
+            },
+          )
     );
     homePresenter.updateScreen();
   }

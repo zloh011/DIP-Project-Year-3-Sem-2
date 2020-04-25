@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:dip_taskplanner/add_user_dialog.dart';
-import 'package:dip_taskplanner/database/database_hepler.dart';
 import 'package:dip_taskplanner/database/model/user.dart';
 import 'package:dip_taskplanner/home_presenter.dart';
 import 'package:dip_taskplanner/list.dart';
@@ -12,19 +11,19 @@ class MyHomePage extends StatefulWidget {
   MyHomePage({Key key, this.title,this.dateTime}) : super(key: key);
   final String title;
   final String dateTime;
+  
   @override
   _MyHomePageState createState() => new _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> implements HomeContract {
   HomePresenter homePresenter;
-
   @override
   void initState() {
     super.initState();
     homePresenter = new HomePresenter(this);
+    
   }
-
   displayRecord() {
     setState(() {});
   }
@@ -56,10 +55,20 @@ class _MyHomePageState extends State<MyHomePage> implements HomeContract {
     showDialog(
       context: context,
       builder: (BuildContext context) =>
-          new AddUserDialog().buildAboutDialog(context, this, false, null,widget.dateTime),
+          FutureBuilder(
+            future:homePresenter.getcourseid(), 
+            builder: (context,snapshot){
+              if(snapshot.hasError)print(snapshot.data);
+              var data = snapshot.data;
+              return snapshot.hasData
+                ? AddUserDialog(context:context, myHomePageState: this, isEdit:false, user:null,dateTime:widget.dateTime,courseid:data)
+                : Center(child: CircularProgressIndicator());
+            },
+          )
+
     );
 
-    setState(() {});
+    //setState(() {});
   }
 
   List<Widget> _buildActions() {
@@ -98,4 +107,5 @@ class _MyHomePageState extends State<MyHomePage> implements HomeContract {
   void screenUpdate() {
     setState(() {});
   }
+
 }

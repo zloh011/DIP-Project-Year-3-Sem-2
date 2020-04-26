@@ -24,7 +24,7 @@ class User {
 
   String get eventST => _eventST;
 
-  String get eventET => _eventST;
+  String get eventET => _eventET;
 
   String get eventCAT => _eventCAT;
 

@@ -27,7 +27,24 @@ class ListOfCourses {
   RegExp day1 = RegExp(r'\d*\d');
   RegExp month1 = RegExp(r'-\d*\d-');
   RegExp year1 = RegExp(r'\d\d\d\d');
-  
+  RegExp timeOfDay = RegExp(r'\d\d:\d\d');
+
+  String findTimeOfDay (val){
+    return retrieveInfoOf(timeOfDay, val);
+  }
+
+  String findOtherThanPattern(String val){
+    try {
+      RegExp regExp = RegExp(r'[a-zA-Z][a-zA-Z]*\d{4}L*\s');
+      Match match = regExp.firstMatch(val);
+      return val.substring(match.end);      
+    } catch (e) {
+      print(e);
+      return val;
+    }
+
+  }
+
   String findDateyyyyMMdd (val){
     String day = retrieveInfoOf(day1,val);
     String month = retrieveInfoOf(month1, val);
@@ -52,7 +69,7 @@ class ListOfCourses {
     return inBetween(val,'Name','Course');
 
   }
-  /*Function to add  */
+  /*Function to add to database  */
   bool addToDatabase (String text,BuildContext context){
     if(text.isEmpty){
       return false;
@@ -100,8 +117,14 @@ class ListOfCourses {
     
   }
   String retrieveInfoOf (RegExp regExp,String subStrings){
-    Match match = regExp.firstMatch(subStrings);
-    return subStrings.substring(match.start,match.end);
+    try {
+      Match match = regExp.firstMatch(subStrings);
+      return subStrings.substring(match.start,match.end);
+    } catch (e) {
+      print(e);
+      return null;
+    }
+
   }
 
   Future addRecord() async {

@@ -1,9 +1,11 @@
 import 'dart:async';
+import 'package:dip_taskplanner/components/regExp.dart';
 import 'package:intl/intl.dart';
 import 'package:dip_taskplanner/homescreen.dart';
 import 'package:flutter/material.dart';
 import 'package:dip_taskplanner/database/database_hepler.dart';
 import 'package:dip_taskplanner/database/model/user.dart';
+
 class AddUserDialog extends StatefulWidget {
   AddUserDialog({Key key,this.context, this.myHomePageState,this.isEdit,this.user,this.dateTime,this.courseid}) : super(key: key);
   final context;
@@ -19,7 +21,7 @@ class AddUserDialog extends StatefulWidget {
 class _AddUserDialogState extends State<AddUserDialog> {
   @override
   Widget build(BuildContext context) {
-    return buildAboutDialog(context, widget.myHomePageState, widget.isEdit, user, widget.dateTime, widget.courseid);
+    return buildAboutDialog(context, widget.myHomePageState, widget.isEdit, widget.user, widget.dateTime, widget.courseid);
   }
   final teEventName = TextEditingController();
   final teEventLocation = TextEditingController();
@@ -27,7 +29,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
   final teET = TextEditingController();
   final teCAT = TextEditingController();
   User user;
-
+  int trigger = 0;
   static const TextStyle linkStyle = const TextStyle(
     color: Colors.blue,
     decoration: TextDecoration.underline,
@@ -35,15 +37,29 @@ class _AddUserDialogState extends State<AddUserDialog> {
 
   Widget buildAboutDialog(BuildContext context, _myHomePageState, bool isEdit,
       User user, String dateTime, List<String> courseid) {
-    if (user != null) {
-      this.user = user;
-      teEventName.text = user.eventName;
-      teEventLocation.text = user.eventLocation;
-      teST.text = user.eventST;
-      teET.text = user.eventET;
-      teCAT.text = user.eventCAT;
-    }
+    
+    
+    if(trigger==0){
+      teST.text =('${NumberFormat('00').format(startDateTime.day)}-${NumberFormat('00').format(startDateTime.month)}-${startDateTime.year} ${NumberFormat('00').format(startDateTime.hour)}:${NumberFormat('00').format(startDateTime.minute)}');
+      teET.text =('${NumberFormat('00').format(endDateTime.day)}-${NumberFormat('00').format(endDateTime.month)}-${endDateTime.year} ${NumberFormat('00').format(endDateTime.hour)}:${NumberFormat('00').format(endDateTime.minute)}');          
+      if (user != null) {
+        this.user = user;
+        teEventName.text = user.eventName;
+        teEventLocation.text = user.eventLocation;
+        teST.text = user.eventST;
+        teET.text = user.eventET;
+        teCAT.text = user.eventCAT;
+        categoryValue = user.eventCAT;
+        eventNameValue = ListOfCourses().retrieveInfoOf(RegExp(r'[a-zA-Z][a-zA-Z]*\d{4}L*'),teEventName.text);
+        teEventName.text =  ListOfCourses().findOtherThanPattern(teEventName.text);
+        String startTime = ListOfCourses().findTimeOfDay(user.eventST);
+        String endTime = ListOfCourses().findTimeOfDay(user.eventET);
+        startDateTime = DateTime.parse(ListOfCourses().findDateyyyyMMdd(user.eventST)+' '+startTime);
+        endDateTime = DateTime.parse(ListOfCourses().findDateyyyyMMdd(user.eventET)+' '+endTime);
+      }
+      trigger++;
 
+    }
     return new AlertDialog(
       title: new Text(isEdit ? 'Edit' : 'Add new User'),
       content: new SingleChildScrollView(
@@ -59,13 +75,14 @@ class _AddUserDialogState extends State<AddUserDialog> {
             new GestureDetector(
               onTap: () {
                 setState(() {
-                  // print(teEventName.text);
-                  // print(teEventLocation.text);
-                  // print(teST.text);
-                  // print(teET.text);
-                  // print(teCAT.text);
+                  teEventName.text = (eventNameValue??'') +' '+teEventName.text;
+                  print(teEventName.text);
+                  print(teEventLocation.text);
+                  print(teST.text);
+                  print(teET.text);
+                  print(teCAT.text);
                   addRecord(isEdit, dateTime);
-                  //_myHomePageState.displayRecord();
+                  _myHomePageState.displayRecord();
                   Navigator.of(context).pop();
                 });
 
@@ -87,6 +104,12 @@ class _AddUserDialogState extends State<AddUserDialog> {
     var loginBtn = new Padding(
       padding: const EdgeInsets.all(5.0),
       child: new TextFormField(
+        onTap: (){        
+          FocusScopeNode currentFocus = FocusScope.of(context);
+          if (!currentFocus.hasPrimaryFocus) {
+            currentFocus.unfocus();
+          }
+        },
         controller: inputBoxController,
         decoration: new InputDecoration(
           hintText: inputBoxName,
@@ -97,7 +120,6 @@ class _AddUserDialogState extends State<AddUserDialog> {
     return loginBtn;
   }
   String eventNameValue;
-  final name = TextEditingController();
   Widget getEventName(String inputBoxName,TextEditingController inputBoxController, List<String> courseid) {
     
     return Row(
@@ -118,8 +140,9 @@ class _AddUserDialogState extends State<AddUserDialog> {
                 hint: Text('CourseID'),
                 onChanged: (value) {
                   setState(() {
-                    inputBoxController.text = value + ' ' + name.text;
+                    //inputBoxController.text = value + ' ' + name.text;
                     eventNameValue = value;
+                    print(teEventName);
                   });
                 }),
           ),
@@ -128,12 +151,19 @@ class _AddUserDialogState extends State<AddUserDialog> {
         Expanded(
           flex: 3,
           child: TextFormField(
-            controller: name,
+            controller: teEventName,
             decoration: InputDecoration(
               hintText: inputBoxName,
             ),
+            onTap: (){
+              FocusScopeNode currentFocus = FocusScope.of(context);
+              if (!currentFocus.hasPrimaryFocus) {
+                currentFocus.unfocus();
+                }
+              },
+            onChanged: (value){},
             onFieldSubmitted: (value) {
-              inputBoxController.text = inputBoxController.text + ' ' + value;
+              //inputBoxController.text = inputBoxController.text + ' ' + value;
             },
             autofocus: false,
           ),
@@ -151,8 +181,9 @@ class _AddUserDialogState extends State<AddUserDialog> {
         value: categoryValue,
         onChanged: (newValue) {
           setState(() {
-            inputBoxController.text = newValue;
-            categoryValue = newValue;            
+            //inputBoxController.text = newValue;
+            teCAT.text = newValue; 
+            categoryValue=newValue;
           });
         },
         items: <String>[
@@ -195,8 +226,8 @@ class _AddUserDialogState extends State<AddUserDialog> {
     );
     return loginBtn;
   }
-  DateTime startDateTime = DateTime.now();
-  DateTime endDateTime = DateTime.now().add(Duration(days: 1));
+  DateTime startDateTime =  DateTime.now().toLocal();
+  DateTime endDateTime = DateTime.now().add(Duration(days: 1)).toLocal();
   Future<void> _pickStartDate ()async {
     DateTime date = await showDatePicker(
       context: context ,
@@ -205,7 +236,8 @@ class _AddUserDialogState extends State<AddUserDialog> {
       lastDate: DateTime(DateTime.now().year+5));
     if (date !=null){
       setState(() {
-        startDateTime = DateTime(date.year,date.month,date.day,startDateTime.hour,startDateTime.minute);        
+        startDateTime = DateTime(date.year,date.month,date.day,startDateTime.hour,startDateTime.minute).toLocal();
+        teST.text =('${NumberFormat('00').format(startDateTime.day)}-${NumberFormat('00').format(startDateTime.month)}-${startDateTime.year} ${NumberFormat('00').format(startDateTime.hour)}:${NumberFormat('00').format(startDateTime.minute)}');
       });
     }  
   }
@@ -216,24 +248,23 @@ class _AddUserDialogState extends State<AddUserDialog> {
       initialTime: TimeOfDay.fromDateTime(startDateTime)
       );
     if(t!=null) setState(() {
-      startDateTime = DateTime(startDateTime.year,startDateTime.month,startDateTime.day,t.hour,t.minute);
+      startDateTime = DateTime(startDateTime.year,startDateTime.month,startDateTime.day,t.hour,t.minute).toLocal();
+      teST.text =('${NumberFormat('00').format(startDateTime.day)}-${NumberFormat('00').format(startDateTime.month)}-${startDateTime.year} ${NumberFormat('00').format(startDateTime.hour)}:${NumberFormat('00').format(startDateTime.minute)}');
+      print(teST.text);
     });
   }
   Widget startDateAndTimePicker(String hint, TextEditingController controller){
     return ListTile(
       leading:Icon(Icons.date_range) ,
       title: Text(hint),
-      subtitle: Text(controller.text = ('${NumberFormat('00').format(startDateTime.day)}-${NumberFormat('00').format(startDateTime.month)}-${startDateTime.year} ${NumberFormat('00').format(startDateTime.hour)}:${NumberFormat('00').format(startDateTime.minute)}')),//('${dateTime.day}/${dateTime.month}/${dateTime.year} ${dateTime.hour}:${dateTime.minute.}')),
+      subtitle: Text(controller.text),
       trailing: Icon(Icons.more_vert),
       dense:true,
       onTap: (){
-        _pickStartDate();
-        if(endDateTime.isBefore(startDateTime)){
-          var temp = endDateTime;
-          endDateTime = startDateTime;
-          startDateTime = temp;
-        }
-        _pickStartTime();
+        setState(() {
+          _pickStartTime();
+          _pickStartDate();
+        });
       },
     );
   }
@@ -246,6 +277,12 @@ class _AddUserDialogState extends State<AddUserDialog> {
     if (date !=null){
       setState(() {
         endDateTime = DateTime(date.year,date.month,date.day,endDateTime.hour,endDateTime.minute);        
+        teET.text =('${NumberFormat('00').format(endDateTime.day)}-${NumberFormat('00').format(endDateTime.month)}-${endDateTime.year} ${NumberFormat('00').format(endDateTime.hour)}:${NumberFormat('00').format(endDateTime.minute)}');
+        if(endDateTime.isBefore(startDateTime)){
+          var temp = endDateTime;
+          endDateTime = startDateTime;
+          startDateTime = temp;
+        }        
       });
     }  
   }
@@ -257,23 +294,21 @@ class _AddUserDialogState extends State<AddUserDialog> {
       );
     if(t!=null) setState(() {
       endDateTime = DateTime(endDateTime.year,endDateTime.month,endDateTime.day,t.hour,t.minute);
+      teET.text =('${NumberFormat('00').format(endDateTime.day)}-${NumberFormat('00').format(endDateTime.month)}-${endDateTime.year} ${NumberFormat('00').format(endDateTime.hour)}:${NumberFormat('00').format(endDateTime.minute)}');
     });
   }
   Widget endDateAndTimePicker(String hint, TextEditingController controller){
     return ListTile(
       leading:Icon(Icons.date_range) ,
       title: Text(hint),
-      subtitle: Text(controller.text = ('${NumberFormat('00').format(endDateTime.day)}-${NumberFormat('00').format(endDateTime.month)}-${endDateTime.year} ${NumberFormat('00').format(endDateTime.hour)}:${NumberFormat('00').format(endDateTime.minute)}')),
+      subtitle: Text(controller.text),
       trailing: Icon(Icons.more_vert),
       dense:true,
       onTap: (){
-        _pickEndDate();
-        if(endDateTime.isBefore(startDateTime)){
-          var temp = endDateTime;
-          endDateTime = startDateTime;
-          startDateTime = temp;
-        }
-        _pickEndTime();
+        setState(() {
+          _pickEndTime();
+          _pickEndDate();          
+        });
       },
     );
   }

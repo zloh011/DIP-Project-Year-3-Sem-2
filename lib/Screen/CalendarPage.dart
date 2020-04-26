@@ -1,4 +1,6 @@
+import 'package:dip_taskplanner/components/regExp.dart';
 import 'package:dip_taskplanner/database/database_hepler.dart';
+import 'package:dip_taskplanner/database/model/user.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
 import 'package:dip_taskplanner/constants.dart';
@@ -11,10 +13,9 @@ import 'package:date_utils/date_utils.dart';
 import 'package:swipedetector/swipedetector.dart';
 
 const activeCardColour = Color(0xFF1D1E33);
-
 class CalendarPage extends StatefulWidget {
   CalendarPage();
-
+  
   @override
   _CalendarPageState createState() => _CalendarPageState();
 }
@@ -22,16 +23,39 @@ class CalendarPage extends StatefulWidget {
 class _CalendarPageState extends State<CalendarPage> {
   final _scaffoldKey = GlobalKey<ScaffoldState>(); //To allow top left table icon button to open scaffold drawer
   final databasehelper = DatabaseHelper();
+  bool check =false;
+  List<User> allEvents; 
   DateTime dateTime = new DateTime.now();
   List<List<Widget>> twoDList =
       List.generate(rows, (i) => List(DateTime.daysPerWeek), growable: false);
   void updateUI(DateTime dateTime) {
     DateTime startDayIndex = Utils.firstDayOfMonth(dateTime);
-
     for (int i = 0; i < rows; i++) {
       for (int j = 0; j < daysPerWeek; j++) {
         if ((j + 1) == startDayIndex.weekday &&
             startDayIndex.month == dateTime.month) {
+          int rank = 9;
+          for(int k=0; k<allEvents.length;k++){
+            String value = ListOfCourses().findDateyyyyMMdd(allEvents[k].eventET);
+            DateTime endDateTime = DateTime.parse(value);
+            if(endDateTime.day==startDayIndex.day&&endDateTime.month==startDayIndex.month&&startDayIndex.year==endDateTime.year){//Check same date and Time
+              switch (allEvents[k].eventCAT) {          
+                case 'Exam' :{if(rank>1)rank=1;}
+                  break;
+                case 'Quiz' :{if(rank>2)rank=2;}
+                  break;
+                case 'Homework Assignment':{if(rank>4)rank=4;}
+                  break;
+                case 'Tut':{if(rank>6)rank=6;}
+                  break;
+                case 'IRA/ClassTest':{if(rank>3)rank=3;}
+                  break;
+                case 'Others':{if(rank>5)rank=5;}
+                  break;
+                default:
+              }
+            }
+          }
           twoDList[i][j] = CircularButton(
             visible: true,
             location: [i, j],
@@ -49,13 +73,17 @@ class _CalendarPageState extends State<CalendarPage> {
                       days: (startDayIndex.weekday - 1),
                     ),
                   )][1],
-            function: () {
+            function: () async {
               print([i, j]);
+              allEvents = await retrieveAllUser();
+              check = deleteFrom2DList(twoDList);
             },
+            boxInternalColour: colourIndicator[rank]??null,
+            
           );
           startDayIndex = startDayIndex.add(Duration(days: 1));
         } else {
-          twoDList[i][j] = CircularButton(visible: false, location: [i, j]);
+          twoDList[i][j] = CircularButton(visible: false, location: [i, j],);
         }
       }
     }
@@ -64,17 +92,19 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
-    setState(() {
-      updateUI(dateTime);
-    });
+    setState(() {});
+  }
+  Future<List<User>> retrieveAllUser () async{
+    return await databasehelper.getAllUsers();
   }
 
-  void deleteFrom2DList(List<List> list) {
+  bool deleteFrom2DList(List<List> list) {
     for (int i = 0; i < list.length; i++) {
       for (int j = 0; j < list[i].length; j++) {
         list[i][j] = null;
       }
     }
+    return true;
   }
 
   @override
@@ -93,7 +123,7 @@ class _CalendarPageState extends State<CalendarPage> {
               accountEmail: null,
             ),
             ListTile(
-              leading: Icon(Icons.message),
+              leading: Icon(Icons.event_busy),
               title: Text('Delete To Do List\n(Press and hold)'),
               onLongPress: () {
                 showDialog(
@@ -121,7 +151,7 @@ class _CalendarPageState extends State<CalendarPage> {
               },
             ),
             ListTile(
-              leading: Icon(Icons.account_circle),
+              leading: Icon(Icons.delete_forever),
               title: Text(
                   'Delete Registered Courses \nand To Do List\n(Press and hold)'),
               onLongPress: () {
@@ -133,10 +163,10 @@ class _CalendarPageState extends State<CalendarPage> {
                           actions: [
                             FlatButton(
                               onPressed: () async{
-                                databasehelper.deleteAllUsers();
-                                databasehelper.deleteAllCourses();
                                 await databasehelper.coursesExist();
                                 await databasehelper.usersExist(); 
+                                databasehelper.deleteAllUsers();
+                                databasehelper.deleteAllCourses();
                                 Navigator.of(context).pop();
                                 Navigator.push(context,MaterialPageRoute(builder: (context)=>LoadingScreen()));
                               },
@@ -187,9 +217,10 @@ class _CalendarPageState extends State<CalendarPage> {
                 () {
                   dateTime = dateTime
                       .add(Duration(days: Utils.daysInMonth(dateTime).length));
-
+                  
                   deleteFrom2DList(twoDList);
-                  updateUI(dateTime);
+                  // _allEvents =await _retrieveAllUser();
+                  // updateUI(dateTime);
                 },
               );
             },
@@ -197,9 +228,10 @@ class _CalendarPageState extends State<CalendarPage> {
               setState(() {
                 dateTime = dateTime.subtract(
                     Duration(days: Utils.daysInMonth(dateTime).length));
-
+                
                 deleteFrom2DList(twoDList);
-                updateUI(dateTime);
+                // _allEvents = await _retrieveAllUser();
+                // updateUI(dateTime);
               });
             },
             child: Column(children: <Widget>[
@@ -255,32 +287,46 @@ class _CalendarPageState extends State<CalendarPage> {
                   ),
                 ],
               ),
-              Column(
-                children: <Widget>[
-                  Row(
-                    children: twoDList[0],
-                  ),
-                  Row(
-                    children: twoDList[1],
-                  ),
-                  Row(
-                    children: twoDList[2],
-                  ),
-                  Row(
-                    children: twoDList[3],
-                  ),
-                  Row(
-                    children: twoDList[4],
-                  ),
-                  Row(
-                    children: twoDList[5],
-                  ),
+              FutureBuilder(
+                future: retrieveAllUser(),
+                builder: (context,snapshot){
+                  if(snapshot.hasError)print(snapshot.error);
+                  if(snapshot.hasData){
+                    allEvents = snapshot.data;
+                    updateUI(dateTime);
+                  }
+                  return (snapshot.hasData)
+                  ?Column(
+                    children: <Widget>[
+                      Row(
+                        children: twoDList[0],
+                      ),
+                      Row(
+                        children: twoDList[1],
+                      ),
+                      Row(
+                        children: twoDList[2],
+                      ),
+                      Row(
+                        children: twoDList[3],
+                      ),
+                      Row(
+                        children: twoDList[4],
+                      ),
+                      Row(
+                        children: twoDList[5],
+                      ),
                 ],
-              ),
+              ):Align(alignment:Alignment.bottomCenter ,child: CircularProgressIndicator());
+                },),
             ]),
           ),
         ),
       ),
     );
   }
+  void screenUpdate() {
+    setState(() {});
+  }
+
 }

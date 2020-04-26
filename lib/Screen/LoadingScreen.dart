@@ -11,7 +11,7 @@ class LoadingScreen extends StatefulWidget {
 
 class _LoadingScreenState extends State<LoadingScreen> {
   var datebasehelper = DatabaseHelper();
-  int state = 0;
+  String state = 'Loading Files';
   bool exist = false;
   final myTextController = TextEditingController();
   @override
@@ -23,8 +23,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
     bool exist = await datebasehelper.coursesExist();
     print(exist);
     setState((){
-      if(exist) state = 1;
-      else state = 2;
+      if(exist) state = '1';
+      else state = '2';
     });
   }
   @override
@@ -33,8 +33,8 @@ class _LoadingScreenState extends State<LoadingScreen> {
   }
   Widget getOption (){
     switch (state) {
-      case 1: return CalendarPage();
-      case 2: return WillPopScope(
+      case '1': return CalendarPage();
+      case '2': return WillPopScope(
         onWillPop: () async => false,
         child: Scaffold(
         resizeToAvoidBottomPadding: false,

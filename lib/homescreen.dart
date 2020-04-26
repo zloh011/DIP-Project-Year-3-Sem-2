@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:dip_taskplanner/Screen/CalendarPage.dart';
 import 'package:flutter/material.dart';
 import 'package:dip_taskplanner/add_user_dialog.dart';
 import 'package:dip_taskplanner/database/model/user.dart';
@@ -68,7 +69,7 @@ class _MyHomePageState extends State<MyHomePage> implements HomeContract {
 
     );
 
-    //setState(() {});
+    setState(() {});
   }
 
   List<Widget> _buildActions() {
@@ -86,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> implements HomeContract {
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
-      appBar: new AppBar(
+      appBar: new AppBar(leading: BackButton(onPressed:(){Navigator.pop(context);}),
         title: _buildTitle(context),
         actions: _buildActions(),
       ),
@@ -95,6 +96,7 @@ class _MyHomePageState extends State<MyHomePage> implements HomeContract {
         builder: (context, snapshot) {
           if (snapshot.hasError) print(snapshot.error);
           var data = snapshot.data;
+          
           return snapshot.hasData
               ? new UserList(data,homePresenter,widget.dateTime)
               : new Center(child: new CircularProgressIndicator());

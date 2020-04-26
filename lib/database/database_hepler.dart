@@ -42,7 +42,19 @@ class DatabaseHelper {
     return res;
   }
 
-  
+  Future<List<User>> getAllUsers() async{
+    var dbClient = await db;
+    List<Map> list = await dbClient.rawQuery('SELECT * FROM Event');
+    List<User> employees = new List();
+    for (int i = 0; i < list.length; i++) {
+      var user =
+        new User(list[i]["eventname"], list[i]["eventloc"], list[i]["stime"], list[i]["etime"], list[i]["category"],list[i]["date"]);
+      user.setUserId(list[i]["id"]);
+      employees.add(user);
+    }
+    //print(employees.length);
+    return employees;
+  }
 
   Future<List<User>> getUser(String dateTime) async {
     DateTime currentDateTime = DateTime.parse(dateTime);
@@ -53,7 +65,6 @@ class DatabaseHelper {
       
       if(list[i]["date"]!=null){
         String value = ListOfCourses().findDateyyyyMMdd(list[i]['etime']);
-        
         DateTime endDateTime = DateTime.parse(value);
         if(endDateTime.isAtSameMomentAs(currentDateTime)){
           var user =
@@ -63,7 +74,7 @@ class DatabaseHelper {
         }
       }
     }
-    print(employees.length);
+    //print(employees.length);
     return employees;
   }
   Future<List<String>> getUserCategory () async{

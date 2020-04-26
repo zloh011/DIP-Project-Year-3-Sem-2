@@ -22,6 +22,17 @@ const Map<int,String> dayOfWk = {
 const int rows = 6;
 const int daysPerWeek = DateTime.daysPerWeek;
 
+Map<int,Color> colourIndicator ={
+  1:Colors.red[700],
+  2:Colors.orange,
+  3:Colors.amber,
+  4:Colors.purple,
+  5:Colors.green,
+  6:Colors.teal[100],
+};
+
+
+
 Map<DateTime,List<dynamic>> academicWeeks = {
   DateTime.parse('2020-01-13 00:00:00'):["week1",Colors.teal[100]],
   DateTime.parse('2020-01-20 00:00:00'):["week2",Colors.teal[100]],

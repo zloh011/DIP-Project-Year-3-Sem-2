@@ -51,6 +51,15 @@ class ListOfCourses {
     String year = retrieveInfoOf(year1, val);
     return year+month+day;
   }
+  String findDatedd (val){
+    String day = retrieveInfoOf(day1,val);
+    return day;
+  }
+  String findDateMM (val){
+    String month = retrieveInfoOf(month1, val);
+    String monthValue = retrieveInfoOf(day1, month);
+    return monthValue;
+  }  
 
   String inBetween(String val,String start,String end) {//subString function with input as Strings and Strings
     String str = val;

@@ -14,35 +14,33 @@ class CircularButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Visibility(
-        visible: visible==null ?true :visible,
-        child: GestureDetector(
-          onTap: () {
-            
-            print(dateTime.toString());
-            Navigator.push(context,MaterialPageRoute(builder: (context){return MyHomePage(title:"Hi",dateTime: DateFormat('yyyy-MM-dd').format(dateTime),);})).then((value) => function);
-            function();
-            
-          },
-          child: Container(
-            margin: EdgeInsets.all(8.0),
-            height: 45.0,
-            width: 45.0,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: boxInternalColour == null? Colors.grey[800]:boxInternalColour,
-              boxShadow: [
-                BoxShadow(
-                    color: boxShadowColor == null? Colors.grey[900]: boxShadowColor,
-                    offset: Offset(2.5, 2.5),
-                    spreadRadius: 5.0,
-                    blurRadius: 3.0),
-              ],
-            ),
-            child: Text('$text'),
+    return Visibility(
+      visible: visible==null ?true :visible,
+      child: GestureDetector(
+        onTap: () {
+          
+          print(dateTime.toString());
+          Navigator.push(context,MaterialPageRoute(builder: (context){return MyHomePage(title:"Hi",dateTime: DateFormat('yyyy-MM-dd').format(dateTime),);})).then((value) => function);
+          function();
+          
+        },
+        child: Container(
+          margin: EdgeInsets.all(8.0),
+          height: 45.0,
+          width: 45.0,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: boxInternalColour == null? Colors.grey[800]:boxInternalColour,
+            boxShadow: [
+              BoxShadow(
+                  color: boxShadowColor == null? Colors.grey[900]: boxShadowColor,
+                  offset: Offset(2.0, 2.0),
+                  spreadRadius: 2.0,
+                  blurRadius: 2.0),
+            ],
           ),
+          child: Text('$text'),
         ),
       ),
     );

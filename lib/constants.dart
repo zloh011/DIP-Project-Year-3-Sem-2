@@ -9,7 +9,7 @@ enum dayOfWeek {
   Fri,
   Sat,
 }
-const List<String> months = ['January','Feburary','March','April','May','June'];
+const List<String> months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const Map<int,String> dayOfWk = {
   7:'Sun',
   1:'Mon',

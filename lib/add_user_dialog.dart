@@ -76,11 +76,11 @@ class _AddUserDialogState extends State<AddUserDialog> {
               onTap: () {
                 setState(() {
                   teEventName.text = (eventNameValue??'') +' '+teEventName.text;
-                  print(teEventName.text);
-                  print(teEventLocation.text);
-                  print(teST.text);
-                  print(teET.text);
-                  print(teCAT.text);
+                  // print(teEventName.text);
+                  // print(teEventLocation.text);
+                  // print(teST.text);
+                  // print(teET.text);
+                  // print(teCAT.text);
                   addRecord(isEdit, dateTime);
                   _myHomePageState.displayRecord();
                   Navigator.of(context).pop();

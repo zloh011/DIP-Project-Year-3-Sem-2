@@ -11,6 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'package:pdf_render/pdf_render.dart';
 import 'package:date_utils/date_utils.dart';
 import 'package:swipedetector/swipedetector.dart';
+import 'package:flutter_app_badger/flutter_app_badger.dart';
 
 const activeCardColour = Color(0xFF1D1E33);
 
@@ -53,9 +54,7 @@ class _CalendarPageState extends State<CalendarPage> {
                   allEvents[k].eventCAT,
                   difference.toString()));
               if(bottomViewerEvents.length==allEvents.length)triggerDaysLeft = false;
-              
             }
-
             if (endDateTime.day == startDayIndex.day &&
                 endDateTime.month == startDayIndex.month &&
                 startDayIndex.year == endDateTime.year) {
@@ -81,7 +80,7 @@ class _CalendarPageState extends State<CalendarPage> {
                     if (rank > 6) rank = 6;
                   }
                   break;
-                case 'IRA/ClassTest':
+                case 'IRA/Class Test':
                   {
                     if (rank > 3) rank = 3;
                   }
@@ -436,6 +435,9 @@ class MenuWidget extends StatelessWidget {
               teCAT: myEventdata[element].eventCAT))
         );
       }
+      print(FlutterAppBadger.isAppBadgeSupported());
+      int element = rank[rankKeys.first].first;
+      FlutterAppBadger.updateBadgeCount(int.parse(myEventdata[element].eventDate));
       myEventdata.clear();
     }
 

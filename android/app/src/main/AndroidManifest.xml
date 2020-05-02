@@ -9,7 +9,7 @@
     <application
         android:name="io.flutter.app.FlutterApplication"
         android:label="dip_taskplanner"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/taskplannerlogo">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"

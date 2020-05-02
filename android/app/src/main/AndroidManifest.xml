@@ -8,7 +8,7 @@
          FlutterApplication and put your custom class here. -->
     <application
         android:name="io.flutter.app.FlutterApplication"
-        android:label="dip_taskplanner"
+        android:label="Task Planner"
         android:icon="@mipmap/taskplannerlogo">
         <activity
             android:name=".MainActivity"

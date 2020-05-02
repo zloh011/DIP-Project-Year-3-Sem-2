@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dip_taskplanner/components/regExp.dart';
 import 'package:dip_taskplanner/database/database_hepler.dart';
+import 'package:dip_taskplanner/database/model/course.dart';
 import 'package:dip_taskplanner/database/model/user.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
@@ -26,6 +29,7 @@ class _CalendarPageState extends State<CalendarPage> {
   final _scaffoldKey = GlobalKey<
       ScaffoldState>(); //To allow top left table icon button to open scaffold drawer
   final databasehelper = DatabaseHelper();
+  List<Course> allCourseInfo;
   bool check = false;
   List<User> allEvents;
   List<User> bottomViewerEvents = [];
@@ -53,7 +57,8 @@ class _CalendarPageState extends State<CalendarPage> {
                   allEvents[k].eventET,
                   allEvents[k].eventCAT,
                   difference.toString()));
-              if(bottomViewerEvents.length==allEvents.length)triggerDaysLeft = false;
+              if (bottomViewerEvents.length == allEvents.length)
+                triggerDaysLeft = false;
             }
             if (endDateTime.day == startDayIndex.day &&
                 endDateTime.month == startDayIndex.month &&
@@ -134,6 +139,11 @@ class _CalendarPageState extends State<CalendarPage> {
   void initState() {
     super.initState();
     setState(() {});
+    getAllCourseInfo();
+  }
+
+  Future<void> getAllCourseInfo() async {
+    allCourseInfo = await databasehelper.getCourse();
   }
 
   Future<List<User>> retrieveAllUser() async {
@@ -155,159 +165,174 @@ class _CalendarPageState extends State<CalendarPage> {
     double height = MediaQuery.of(context).size.height;
     return WillPopScope(
       onWillPop: () async => false,
-      child: Scaffold(
-        key: _scaffoldKey,
-        drawer: Drawer(
-          child: ListView(padding: EdgeInsets.zero, children: <Widget>[
-            UserAccountsDrawerHeader(
-              currentAccountPicture: Icon(
-                Icons.person,
-              ),
-              accountName: Text('Name here'),
-              accountEmail: null,
-            ),
-            ListTile(
-              leading: Icon(Icons.event_busy),
-              title: Text('Delete To Do List\n(Press and hold)'),
-              onLongPress: () {
-                showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                          title: Text('ARE YOU SURE TO DELETE THE TO-DO LIST?'),
-                          content: Text('This will be irreversible.'),
-                          actions: [
-                            FlatButton(
-                              onPressed: () async {
-                                await databasehelper.usersExist();
-                                databasehelper.deleteAllUsers();
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('Yes'),
-                            ),
-                            FlatButton(
-                              onPressed: () {
-                                Navigator.of(context).pop();
-                              },
-                              child: Text('No'),
-                            ),
-                          ],
-                        ));
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.delete_forever),
-              title: Text(
-                  'Delete Registered Courses \nand To Do List\n(Press and hold)'),
-              onLongPress: () {
-                showDialog(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: Text('ARE YOU SURE TO DELETE ALL?'),
-                    content: Text('This will be irreversible.'),
-                    actions: [
-                      FlatButton(
-                        onPressed: () async {
-                          await databasehelper.coursesExist();
-                          await databasehelper.usersExist();
-                          databasehelper.deleteAllUsers();
-                          databasehelper.deleteAllCourses();
-                          Navigator.of(context).pop();
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (context) => LoadingScreen()));
-                        },
-                        child: Text('Yes'),
-                      ),
-                      FlatButton(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                        child: Text('No'),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.settings),
-              title: Text('About'),
-              onTap: () {
-                showDialog(
-                    context: context,
-                    builder: (context) => SimpleDialog(
-                          title: Text('About Us'),
-                          children: <Widget>[
-                            SimpleDialogOption(
-                                child: Text('Okay'),
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                })
-                          ],
-                        ));
-              },
-            ),
-          ]),
-        ),
-        body: SafeArea(
-          child: FutureBuilder(
-            future: retrieveAllUser(),
-            builder: (context, snapshot) {
-              if (snapshot.hasError) print(snapshot.error);
-              if (snapshot.hasData) {
-                allEvents = snapshot.data;
-                updateUI(dateTime);
-              }
-              return (snapshot.hasData)
-                  ? SwipeDetector(
-                      onSwipeUp: () {
-                        if (!showBottomMenu) {
-                          setState(() {
-                            showBottomMenu = true;
-                          });
-                        }
-                      },
-                      onSwipeDown: () {
-                        if (showBottomMenu)
-                          setState(() {
-                            showBottomMenu = false;
-                          });
+      child: FutureBuilder(
+        future: retrieveAllUser(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) print(snapshot.error);
+          if (snapshot.hasData) {
+            allEvents = snapshot.data;
+            updateUI(dateTime);
+          }
+          return (snapshot.hasData)
+              ? SwipeDetector(
+                  onSwipeUp: () {
+                    if (!showBottomMenu) {
+                      setState(() {
+                        showBottomMenu = true;
+                      });
+                    }
+                  },
+                  onSwipeDown: () {
+                    if (showBottomMenu)
+                      setState(() {
+                        showBottomMenu = false;
+                      });
+                    deleteFrom2DList(twoDList);
+                  },
+                  swipeConfiguration: SwipeConfiguration(
+                      verticalSwipeMinVelocity: 100.0,
+                      verticalSwipeMinDisplacement: 50.0,
+                      verticalSwipeMaxWidthThreshold: 100.0,
+                      horizontalSwipeMaxHeightThreshold: 50.0,
+                      horizontalSwipeMinDisplacement: 50.0,
+                      horizontalSwipeMinVelocity: 200.0),
+                  onSwipeLeft: () {
+                    setState(
+                      () {
+                        dateTime = dateTime.add(
+                            Duration(days: Utils.daysInMonth(dateTime).length));
+
                         deleteFrom2DList(twoDList);
+                        // _allEvents =await _retrieveAllUser();
+                        // updateUI(dateTime);
                       },
-                      swipeConfiguration: SwipeConfiguration(
-                          verticalSwipeMinVelocity: 100.0,
-                          verticalSwipeMinDisplacement: 50.0,
-                          verticalSwipeMaxWidthThreshold: 100.0,
-                          horizontalSwipeMaxHeightThreshold: 50.0,
-                          horizontalSwipeMinDisplacement: 50.0,
-                          horizontalSwipeMinVelocity: 200.0),
-                      onSwipeLeft: () {
-                        setState(
-                          () {
-                            dateTime = dateTime.add(Duration(
-                                days: Utils.daysInMonth(dateTime).length));
+                    );
+                  },
+                  onSwipeRight: () {
+                    setState(() {
+                      dateTime = dateTime.subtract(
+                          Duration(days: Utils.daysInMonth(dateTime).length));
 
-                            deleteFrom2DList(twoDList);
-                            // _allEvents =await _retrieveAllUser();
-                            // updateUI(dateTime);
+                      deleteFrom2DList(twoDList);
+                      // _allEvents = await _retrieveAllUser();
+                      // updateUI(dateTime);
+                    });
+                  },
+                  child: Scaffold(
+                    key: _scaffoldKey,
+                    drawer: Drawer(
+                      child:
+                          ListView(padding: EdgeInsets.zero, children: <Widget>[
+                        UserAccountsDrawerHeader(
+                          currentAccountPicture: Icon(
+                            Icons.person,
+                          ),
+                          accountName: (allCourseInfo != null)
+                              ? Text('${allCourseInfo[0].name}')
+                              : Text('Name here'),
+                          accountEmail: null,
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.event_busy),
+                          title: Text('Delete To Do List\n(Press and hold)'),
+                          onLongPress: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                      title: Text(
+                                          'ARE YOU SURE TO DELETE THE TO-DO LIST?'),
+                                      content:
+                                          Text('This will be irreversible.'),
+                                      actions: [
+                                        FlatButton(
+                                          onPressed: () async {
+                                            await databasehelper.usersExist();
+                                            databasehelper.deleteAllUsers();
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('Yes'),
+                                        ),
+                                        FlatButton(
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                          },
+                                          child: Text('No'),
+                                        ),
+                                      ],
+                                    ));
                           },
-                        );
-                      },
-                      onSwipeRight: () {
-                        setState(() {
-                          dateTime = dateTime.subtract(Duration(
-                              days: Utils.daysInMonth(dateTime).length));
-
-                          deleteFrom2DList(twoDList);
-                          // _allEvents = await _retrieveAllUser();
-                          // updateUI(dateTime);
-                        });
-                      },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.delete_forever),
+                          title: Text(
+                              'Delete Registered Courses \nand To Do List\n(Press and hold)'),
+                          onLongPress: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: Text('ARE YOU SURE TO DELETE ALL?'),
+                                content: Text('This will be irreversible.'),
+                                actions: [
+                                  FlatButton(
+                                    onPressed: () async {
+                                      await databasehelper.coursesExist();
+                                      await databasehelper.usersExist();
+                                      databasehelper.deleteAllUsers();
+                                      databasehelper.deleteAllCourses();
+                                      Navigator.of(context).pop();
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  LoadingScreen()));
+                                    },
+                                    child: Text('Yes'),
+                                  ),
+                                  FlatButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: Text('No'),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                        ListTile(
+                          leading: Icon(Icons.settings),
+                          title: Text('About'),
+                          onTap: () {
+                            showDialog(
+                                context: context,
+                                builder: (context) => SimpleDialog(
+                                      title: Text('About Us'),
+                                      children: <Widget>[
+                                        SimpleDialogOption(
+                                            child: Text(
+                                                'Application created by SMAPP-C E037\n\nCreators:\nZhi Yuan (Group Leader)\nZhen Ann(UI/UX)\nYi Ting\nDennis Ong\n\nThe purpose of this mobile application is to assist Electrical & Electronics Engineering students with better time management and improve productivity throughout the academic semester.'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            })
+                                      ],
+                                    ));
+                          },
+                        ),
+                        ListTile(
+                          title: Text('EXIT APP'),
+                          leading: Icon(Icons.exit_to_app),
+                          onTap: () {
+                            exit(0);
+                          },
+                        )
+                      ]),
+                    ),
+                    body: SafeArea(
                       child: Column(children: <Widget>[
                         Expanded(
                           flex: 2,
                           child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Align(
                                 alignment: Alignment.centerLeft,
@@ -321,13 +346,16 @@ class _CalendarPageState extends State<CalendarPage> {
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: 150.0,
-                                child: Center(
+                              Center(
+                                child: SizedBox(
+                                  height: 150.0,
+                                  child: Center(
                                     child: Text(
-                                  '${DateFormat.yMMMM().format(dateTime)}',
-                                  style: TextStyle(fontSize: 50.0),
-                                )),
+                                      '${DateFormat.yMMMM().format(dateTime)}',
+                                      style: TextStyle(fontSize: 40.0),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -382,11 +410,11 @@ class _CalendarPageState extends State<CalendarPage> {
                           ),
                         )
                       ]),
-                    )
-                  : Center(child: CircularProgressIndicator());
-            },
-          ),
-        ),
+                    ),
+                  ),
+                )
+              : Center(child: CircularProgressIndicator());
+        },
       ),
     );
   }
@@ -413,7 +441,6 @@ class MenuWidget extends StatelessWidget {
             String daysLeft = myEventdata[j].eventDate;
             if (int.parse(daysLeft) >= 0 && int.parse(daysLeft) < min) {
               count++;
-              
             }
           }
 
@@ -423,21 +450,20 @@ class MenuWidget extends StatelessWidget {
           rank[count].add(i);
         }
       }
-      List<int> rankKeys= rank.keys.toList();
+      List<int> rankKeys = rank.keys.toList();
       rankKeys.sort();
-      for(int k =0; k<rank.length;k++){
-        rank[rankKeys[k]].forEach((element) => 
-        temp.add(DaysLeft(
-              days: ListOfCourses().findDatedd(myEventdata[element].eventET),
-              monthsOfDaysLeft:ListOfCourses().findDateMM(myEventdata[element].eventET),
-              eventName: myEventdata[element].eventName,
-              daysleft: myEventdata[element].eventDate,
-              teCAT: myEventdata[element].eventCAT))
-        );
+      for (int k = 0; k < rank.length; k++) {
+        rank[rankKeys[k]].forEach((element) => temp.add(DaysLeft(
+            days: ListOfCourses().findDatedd(myEventdata[element].eventET),
+            monthsOfDaysLeft:
+                ListOfCourses().findDateMM(myEventdata[element].eventET),
+            eventName: myEventdata[element].eventName,
+            daysleft: myEventdata[element].eventDate,
+            teCAT: myEventdata[element].eventCAT)));
       }
-      print(FlutterAppBadger.isAppBadgeSupported());
       int element = rank[rankKeys.first].first;
-      FlutterAppBadger.updateBadgeCount(int.parse(myEventdata[element].eventDate));
+      FlutterAppBadger.updateBadgeCount(
+          int.parse(myEventdata[element].eventDate));
       myEventdata.clear();
     }
 
@@ -452,8 +478,7 @@ class MenuWidget extends StatelessWidget {
                 blurRadius: 1.0, spreadRadius: 2.0, offset: Offset(-2.0, 0.0))
           ],
         ),
-        child: ListView(children: temp
-            ));
+        child: ListView(children: temp));
   }
 }
 
@@ -485,17 +510,17 @@ class DaysLeft extends StatelessWidget {
             margin: EdgeInsets.only(left: 35.0),
             child: Row(
               children: [
-                SizedBox(width:40.0),
+                SizedBox(width: 40.0),
                 Expanded(
                   flex: 7,
                   child: Align(
-                    alignment: Alignment.centerLeft,
+                      alignment: Alignment.centerLeft,
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal:8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Text(
-                    '$eventName\n$teCAT',
-                    style: TextStyle(fontSize: 20.0),
-                  ),
+                          '$eventName\n$teCAT',
+                          style: TextStyle(fontSize: 20.0),
+                        ),
                       )),
                 ),
                 Expanded(
@@ -503,8 +528,12 @@ class DaysLeft extends StatelessWidget {
                   child: Center(
                     child: Text(
                       '$daysleft',
-                      style:
-                          TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold,color: (int.parse(daysleft)<=3)? Colors.redAccent:Colors.white),
+                      style: TextStyle(
+                          fontSize: 40.0,
+                          fontWeight: FontWeight.bold,
+                          color: (int.parse(daysleft) <= 3)
+                              ? Colors.redAccent
+                              : Colors.white),
                     ),
                   ),
                 )

@@ -34,10 +34,11 @@ class _AddUserDialogState extends State<AddUserDialog> {
     color: Colors.blue,
     decoration: TextDecoration.underline,
   );
+  FocusScopeNode currentFocus;
 
   Widget buildAboutDialog(BuildContext context, _myHomePageState, bool isEdit,
       User user, String dateTime, List<String> courseid) {
-    
+   
     
     if(trigger==0){
       teST.text =('${NumberFormat('00').format(startDateTime.day)}-${NumberFormat('00').format(startDateTime.month)}-${startDateTime.year} ${NumberFormat('00').format(startDateTime.hour)}:${NumberFormat('00').format(startDateTime.minute)}');
@@ -105,15 +106,18 @@ class _AddUserDialogState extends State<AddUserDialog> {
       padding: const EdgeInsets.all(5.0),
       child: new TextFormField(
         onTap: (){        
-          FocusScopeNode currentFocus = FocusScope.of(context);
+          
+          currentFocus = FocusScope.of(context);
           if (!currentFocus.hasPrimaryFocus) {
             currentFocus.unfocus();
           }
+          
         },
         controller: inputBoxController,
         decoration: new InputDecoration(
           hintText: inputBoxName,
         ),
+        
       ),
     );
 
@@ -142,7 +146,6 @@ class _AddUserDialogState extends State<AddUserDialog> {
                   setState(() {
                     //inputBoxController.text = value + ' ' + name.text;
                     eventNameValue = value;
-                    print(teEventName);
                   });
                 }),
           ),
@@ -156,7 +159,8 @@ class _AddUserDialogState extends State<AddUserDialog> {
               hintText: inputBoxName,
             ),
             onTap: (){
-              FocusScopeNode currentFocus = FocusScope.of(context);
+              
+              currentFocus = FocusScope.of(context);
               if (!currentFocus.hasPrimaryFocus) {
                 currentFocus.unfocus();
                 }
@@ -262,6 +266,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
       dense:true,
       onTap: (){
         setState(() {
+          currentFocus.unfocus();
           _pickStartTime();
           _pickStartDate();
         });
@@ -276,6 +281,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
       lastDate: DateTime(DateTime.now().year+5));
     if (date !=null){
       setState(() {
+        
         endDateTime = DateTime(date.year,date.month,date.day,endDateTime.hour,endDateTime.minute);        
         teET.text =('${NumberFormat('00').format(endDateTime.day)}-${NumberFormat('00').format(endDateTime.month)}-${endDateTime.year} ${NumberFormat('00').format(endDateTime.hour)}:${NumberFormat('00').format(endDateTime.minute)}');
         if(endDateTime.isBefore(startDateTime)){
@@ -305,6 +311,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
       trailing: Icon(Icons.more_vert),
       dense:true,
       onTap: (){
+        currentFocus.unfocus();
         setState(() {
           _pickEndTime();
           _pickEndDate();          

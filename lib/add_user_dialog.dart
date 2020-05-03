@@ -266,7 +266,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
       dense:true,
       onTap: (){
         setState(() {
-          currentFocus.unfocus();
+          if(currentFocus !=null)currentFocus.unfocus();
           _pickStartTime();
           _pickStartDate();
         });
@@ -311,7 +311,7 @@ class _AddUserDialogState extends State<AddUserDialog> {
       trailing: Icon(Icons.more_vert),
       dense:true,
       onTap: (){
-        currentFocus.unfocus();
+        if(currentFocus !=null)currentFocus.unfocus();
         setState(() {
           _pickEndTime();
           _pickEndDate();          
